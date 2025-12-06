@@ -27,16 +27,16 @@ Quantanization_table = \
 #  [16, 14, 14, 18, 64, 44, 46, 46]
 # ]
 
-Quantanization_table = [
- [ 8,  8,  8, 16, 24, 40, 56, 64],
- [ 8,  8, 16, 16, 32, 56, 64, 56],
- [ 8, 16, 16, 24, 40, 64, 72, 56],
- [16, 16, 24, 32, 56, 176, 248, 72],
- [24, 32, 40, 56, 72, 200, 192, 256],
- [40, 56, 64, 256, 184, 192, 208, 176],
- [56, 64, 72, 256, 192, 208, 208, 184],
- [64, 56, 56, 72, 256, 176, 184, 184]
-]
+# Quantanization_table = [
+#  [ 8,  8,  8, 16, 24, 40, 56, 64],
+#  [ 8,  8, 16, 16, 32, 56, 64, 56],
+#  [ 8, 16, 16, 24, 40, 64, 72, 56],
+#  [16, 16, 24, 32, 56, 176, 248, 72],
+#  [24, 32, 40, 56, 72, 200, 192, 256],
+#  [40, 56, 64, 256, 184, 192, 208, 176],
+#  [56, 64, 72, 256, 192, 208, 208, 184],
+#  [64, 56, 56, 72, 256, 176, 184, 184]
+# ]
 
 
 
@@ -91,7 +91,7 @@ class wrangling:
 
         return result
 
-
+    #Conversion from 2D array to 1D list with packed 0s
     def count(self, res):
         ptr0 = 0
         ptr1 = 1
@@ -125,6 +125,7 @@ class wrangling:
 
         return ans
 
+
     def PaddingAndDCT(self,padded):
         DCT_padded = np.zeros_like(padded)
         for i in range(0, padded.shape[0], 8):
@@ -151,7 +152,7 @@ class wrangling:
 
 
 #Image as input
-image = Image.open("trial.png")
+image = Image.open("demo2.png")
 image_rgb = image.convert("RGB")
 image_array = np.array(image_rgb)
 
@@ -167,50 +168,71 @@ img = Image.fromarray(Downsampled_Cb)
 target = Y
 
 #Step:2 DCT and quantanization 
-DCT  = np.zeros(target.shape)
-x,y = DCT.shape[0:2]
+x,y = target.shape[0:2] #Preserving the dimension of the target before padding
 
 #Using scippy fft to perform DCT
+# DCT Padded    - DCT on the paded target where target  can by Y Cb or Cr. The padding is done so that we can have 8*8 blocks of whole image
+# DCT          - Actual Discrete Cosine Transform of the whole picture
+# imgdata      - Compressed Image Data
 
 target_padded = Op.pad(target)
 DCT_padded = Op.PaddingAndDCT(target_padded)
-
-
-
 DCT = DCT_padded[:x,:y]
-image = Image.fromarray(DCT)
-
-
-ans = Op.blockify(DCT_padded)
-
-print(f"{DCT_padded.size} --> {len(ans)}")
-
-
-# k = DCT_padded[0, 0:100].astype(float)
-# print(k.tolist())
-# print("x"*100)
-# k = ans[0:100]
-# print([float(x) for x in k])
-
-
-
-# DCT = DCT_padded[:x,:y]
-# print(DCT)
-
-
 # image = Image.fromarray(DCT)
-# image.show()
+imgdata = Op.blockify(DCT_padded)
+print(f"{DCT_padded.size} --> {len(imgdata)}")
 
-# import matplotlib.pyplot as plt
-# import numpy as np
+# img = Image.fromarray(DCT)
+# img.show()
 
-# # DCT_padded is already 2D
-# # Create a mask for zeros: 1 where value is zero, 0 otherwise
-# zeros_mask = (DCT_padded == 0).astype(int)
 
-# # Plot the heatmap
-# plt.figure(figsize=(12, 8))
-# plt.imshow(zeros_mask, cmap='gray', interpolation='nearest')
-# plt.colorbar(label='Zero presence (1=zero, 0=non-zero)')
-# plt.title("Heatmap of Zeros in DCT_padded")
-# plt.show()
+# # k = DCT_padded[0, 0:100].astype(float)
+# # print(k.tolist())
+# # print("x"*100)
+# # k = ans[0:100]
+# # print([float(x) for x in k])
+
+
+
+# # DCT = DCT_padded[:x,:y]
+# # print(DCT)
+
+
+# # image = Image.fromarray(DCT)
+# # image.show()
+
+# # import matplotlib.pyplot as plt
+# # import numpy as np
+
+# # # DCT_padded is already 2D
+# # # Create a mask for zeros: 1 where value is zero, 0 otherwise
+# # zeros_mask = (DCT_padded == 0).astype(int)
+
+# # # Plot the heatmap
+# # plt.figure(figsize=(12, 8))
+# # plt.imshow(zeros_mask, cmap='gray', interpolation='nearest')
+# # plt.colorbar(label='Zero presence (1=zero, 0=non-zero)')
+# # plt.title("Heatmap of Zeros in DCT_padded")
+# # plt.show()
+
+class Decompression:
+    def unPack0FromList(self,list):
+        arr = []
+        ptr0 = 0
+        while (ptr0 < len(list)):
+            if(ptr0+1 < len(list) and list[ptr0] == 0):
+                for i in range (0,int(list[ptr0+1])):
+                    arr.append(0)
+                ptr0 += 2
+                
+            else :
+                arr.append(list[ptr0])
+                ptr0 += 1
+        return arr
+    
+dc = Decompression()
+sample_mat = [0,1,4,0,6,12,13,14,0,4,5,6,0]
+
+unpackedimgData = dc.unPack0FromList(imgdata)
+print(DCT_padded.size , "-->" , len(unpackedimgData))
+
