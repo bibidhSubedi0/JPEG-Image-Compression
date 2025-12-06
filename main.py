@@ -230,9 +230,45 @@ class Decompression:
                 ptr0 += 1
         return arr
     
-dc = Decompression()
-sample_mat = [0,1,4,0,6,12,13,14,0,4,5,6,0]
 
-unpackedimgData = dc.unPack0FromList(imgdata)
-print(DCT_padded.size , "-->" , len(unpackedimgData))
+    def inverse_zigzag(self,arr, n):
+    # prepare empty n×n matrix
+        matrix = [[0]*n for _ in range(n)]
+        index = 0
+        for d in range(2 * n - 1):
+            temp_positions = []
+            # calculate starting r,c for diagonal 'd'
+            r = 0 if d < n else d - n + 1
+            c = d if d < n else n - 1
+            # collect positions (r,c) visited for this diagonal
+            while r < n and c >= 0:
+                temp_positions.append((r, c))
+                r += 1
+                c -= 1
+            # even diagonals were reversed during zigzag traversal
+            if d % 2 == 0:
+                temp_positions.reverse()
+            # now fill these positions from arr
+            for (r, c) in temp_positions:
+                matrix[r][c] = arr[index]
+                index += 1
+        return matrix
+
+
+
+    
+dc = Decompression()
+sample_mat = [0,1,4,0,6,12,13,14,0,4,5,6,0,6,4,3]
+sample_mat2 = \
+            [[0,1,4,5],
+             [6,12,13,14],
+             [5,7,2,1,],
+             [7,8,9,10]]
+
+traversedsamp = Op.zigzag_traversal(sample_mat2)
+print(traversedsamp)
+inversed = dc.inverse_zigzag(traversedsamp,4)
+# unpackedimgData = dc.unPack0FromList(imgdata)
+# print(DCT_padded.size , "-->" , len(unpackedimgData))
+print(inversed)
 
