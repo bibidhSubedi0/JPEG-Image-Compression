@@ -178,12 +178,13 @@ x,y = target.shape[0:2] #Preserving the dimension of the target before padding
 target_padded = Op.pad(target)
 DCT_padded = Op.PaddingAndDCT(target_padded)
 DCT = DCT_padded[:x,:y]
-# image = Image.fromarray(DCT)
+image = Image.fromarray(DCT)
 imgdata = Op.blockify(DCT_padded)
 print(f"{DCT_padded.size} --> {len(imgdata)}")
+print("Compression ratio ",  len(imgdata)/DCT_padded.size)
 
-# img = Image.fromarray(DCT)
-# img.show()
+img = Image.fromarray(DCT)
+img.show()
 
 
 # # k = DCT_padded[0, 0:100].astype(float)
