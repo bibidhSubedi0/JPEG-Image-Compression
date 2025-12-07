@@ -166,9 +166,10 @@ Downsampled_Cr = Op.Downsampling(Cr)
 
 #Step:2 DCT and quantanization 
 
-component = {1: Y, 2: Cb, 3: Cr}
-saved_data = {}  # dictionary to hold DCT coefficients and sizes
+component = {1: Y, 2: Downsampled_Cb, 3: Downsampled_Cr}
 
+saved_data = {}  # dictionary to hold DCT coefficients and sizes
+CompressionData = {}
 for element in range(1, 4):
     target = component[element]
     OriginalRow, OriginalCol = target.shape[0:2]
@@ -186,10 +187,13 @@ for element in range(1, 4):
     saved_data[f"{element}_PaddedRow"] = PaddedRow
     saved_data[f"{element}_PaddedCol"] = PaddedCol
 
-# Save all components at once
-np.savez_compressed("compressed_imgdata.npz", **saved_data)
+    #Compute Compression Ratio
+    
+    CompressionData[element] = imgdata.size/component[element].size
 
-
+# Compute average compression ratio
+avg_compression = sum(CompressionData.values()) / len(CompressionData)
+print(f"Average compression ratio: {avg_compression:.4f}")
 
 
 
