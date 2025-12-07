@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from skimage.transform import resize
 
 #Image as input
-image = Image.open("demo2.png")
+image = Image.open("DEMO4.png")
 image_rgb = image.convert("RGB")
 image_array = np.array(image_rgb)
 
@@ -112,7 +112,7 @@ class wrangling:
         i = 0
         n = len(res)
         while i < n:
-            if res[i] == 0:
+            if -1 < res[i] < 1:
                 # count consecutive zeros starting at i
                 j = i
                 while j < n and res[j] == 0:
